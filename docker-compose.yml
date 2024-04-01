@@ -1,0 +1,62 @@
+version: '3.8'
+services:
+  react-app:
+    build:
+      context: ./application
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    restart: always
+    environment:
+      - REACT_APP_BACKEND_URL=http://server:8000
+    depends_on:
+      - postgres-db
+      - server
+      - redis-server
+    networks:
+      - challenge-network
+
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    restart: always
+    environment:
+      - JWT_SECRET=~XO6U1mRZXm80Nsp#:LsQ5<rthN
+    depends_on:
+      - postgres-db
+      - redis-server
+    networks:
+      - challenge-network
+
+  postgres-db:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: challenge
+      POSTGRES_USER: main
+      POSTGRES_PASSWORD: Main123123
+    ports:
+      - "5432:5432"
+    restart: always
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./scripts:/docker-entrypoint-initdb.d
+    networks:
+      - challenge-network
+
+  redis-server:
+    image: redis:latest
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - challenge-network
+
+volumes:
+  postgres-data:
+
+networks:
+  challenge-network:
+    driver: bridge
